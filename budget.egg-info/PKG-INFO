@@ -1,0 +1,14 @@
+Metadata-Version: 1.1
+Name: budget
+Version: 0.1.0
+Summary: Keep track of your budget
+Home-page: https://github.com/marhag87/budget
+Author: marhag87
+Author-email: marhag87@gmail.com
+License: MIT
+Description-Content-Type: UNKNOWN
+Description: A tool for keeping track of your budget
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python :: 3.6

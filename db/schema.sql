@@ -50,6 +50,15 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 SET search_path = public, pg_catalog;
 
 --
+-- Name: insert_title(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION insert_title(f1 text) RETURNS TABLE(id integer)
+    LANGUAGE sql
+    AS $_$ WITH CTE AS (INSERT INTO title ("name") VALUES ($1) ON CONFLICT DO NOTHING RETURNING "id") SELECT "id" FROM title WHERE "name"=$1 UNION ALL SELECT * FROM CTE; $_$;
+
+
+--
 -- Name: transactions_for_month(integer, integer); Type: FUNCTION; Schema: public; Owner: -
 --
 

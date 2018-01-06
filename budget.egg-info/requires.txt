@@ -1,5 +1,2 @@
 psycopg2
 pyyamlconfig
-pylint
-coverage
-tox
