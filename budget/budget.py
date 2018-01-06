@@ -8,8 +8,10 @@ from pyyamlconfig import load_config
 
 class Budget:
     """Main class for budget"""
-    def __init__(self):
-        self.config = load_config(f'{Path.home()}/.config/budget.yaml')
+    def __init__(self, config=None):
+        if config is None:
+            config = f'{Path.home()}/.config/budget.yaml'
+        self.config = load_config(config)
 
     def get_transactions(self, year, month):
         """Example function for printing a set of transactions"""
@@ -21,7 +23,7 @@ class Budget:
         ) as con:
             with con.cursor() as cur:
                 cur.execute(f"SELECT * FROM transactions_for_month({year}, {month});")
-                print(cur.fetchone())
+                return cur.fetchone()
 
     def insert_transactions(self, transactionfile='transactions.txt'):
         """Insert all the transactions found in the file provided"""
@@ -36,10 +38,6 @@ class Budget:
                     lines = file.readlines()
                     while lines:
                         title = lines.pop(0).strip()
-                        date = lines.pop(0).strip()
-                        amount = lines.pop(0).strip()
-                        balance = lines.pop(0).strip()
-                        print(title, date, amount, balance)
                         cur.execute(f"SELECT * FROM insert_title('{title}');")
                         (title_id,) = cur.fetchone()
-                        print(title_id)
+                        return title_id

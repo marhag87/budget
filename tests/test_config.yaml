@@ -1,0 +1,7 @@
+---
+hostname: 127.0.0.1
+database: budget_test
+username: budget_test_ro
+password: c6EYEKPhxzh6D3GMYPXg7PGy
+username_rw: budget_test_rw
+password_rw: UGVwZh3gdZqDXhVtQxaghvyP

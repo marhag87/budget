@@ -26,4 +26,13 @@ setup(
         'Intended Audience :: Developers',
         'Programming Language :: Python :: 3.6',
     ],
+    package_data={
+        '': [
+            'db/schema.sql',
+            'tests/test_config.yaml',
+        ],
+    },
+    scripts=[
+        'tests/prepare_test_database.sh',
+    ],
 )

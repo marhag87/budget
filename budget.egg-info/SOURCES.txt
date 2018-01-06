@@ -1,3 +1,4 @@
+README.md
 budget/__init__.py
 budget/budget.py
 budget.egg-info/PKG-INFO
@@ -5,3 +6,4 @@ budget.egg-info/SOURCES.txt
 budget.egg-info/dependency_links.txt
 budget.egg-info/requires.txt
 budget.egg-info/top_level.txt
+tests/prepare_test_database.sh
