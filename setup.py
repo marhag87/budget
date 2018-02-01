@@ -18,8 +18,8 @@ setup(
     description='Keep track of your budget',
     long_description='A tool for keeping track of your budget',
     install_requires=[
-        'psycopg2',
         'pyyamlconfig',
+        'pyodbc',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -28,11 +28,7 @@ setup(
     ],
     package_data={
         '': [
-            'db/schema.sql',
             'tests/test_config.yaml',
         ],
     },
-    scripts=[
-        'tests/prepare_test_database.sh',
-    ],
 )
