@@ -5,4 +5,4 @@ dist
 htmlcov
 .coverage
 .tox
-transactions.txt
+events.txt
