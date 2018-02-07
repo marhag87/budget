@@ -22,6 +22,7 @@ setup(
         'pyodbc',
         'flask',
         'money',
+        'pyramid',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',

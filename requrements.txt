@@ -5,3 +5,4 @@ tox
 pyodbc
 flask
 money
+pyramid

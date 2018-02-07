@@ -46,6 +46,15 @@ class History:
         self.titles.append(added_title)
         return added_title
 
+    def create_category(self, *, name: str) -> 'Category':
+        if name in [x.name for x in self.categories]:
+            for category in self.categories:
+                if category.name == name:
+                    return category
+        added_category = Category(name=name)
+        self.categories.append(added_category)
+        return added_category
+
     def save(self, *, filename: str) -> None:
         with open(filename, 'wb') as file:
             pickle.dump(self, file, pickle.HIGHEST_PROTOCOL)
@@ -144,8 +153,10 @@ class Event:
 
 if __name__ == '__main__':
     history = History()
-    history.load_events(filename='events.txt')
+    # history.create_category(name='Electronics')
+    # history.load_events(filename='events.txt')
     # history.save(filename='data.sav')
-    # history.load(filename='data.sav')
-    for event in history.events_between(date_from=date(2018, 1, 1), date_to=date(2018, 1, 31)):
-        print(event.dict)
+    history.load(filename='data.sav')
+    print([x.name for x in history.categories])
+    # for event in history.events_between(date_from=date(2018, 1, 1), date_to=date(2018, 1, 31)):
+    #     print(event.dict)
