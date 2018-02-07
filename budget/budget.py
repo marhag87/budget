@@ -91,6 +91,9 @@ class Category:
     def __init__(self, *, name: str) -> None:
         self.name: str = name
 
+    def __str__(self) -> str:
+        return self.name
+
     @property
     def dict(self):
         return {
@@ -107,6 +110,10 @@ class Event:
         self.amount = self.launder_money(money_string=amount)
         self.balance = self.launder_money(money_string=balance)
         self.overridden_category = category
+
+    @property
+    def category(self) -> Category:
+        return self.overridden_category if self.overridden_category is not None else self.title.category
 
     @property
     def dict(self) -> dict:

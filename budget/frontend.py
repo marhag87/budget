@@ -21,7 +21,7 @@ def index():
         <tr>
             <td>{event.title.name}</td>
             <td style="text-align: right">{event.amount.amount}</td>
-            <td>{event.dict.get("default_category")}</td>
+            <td>{event.category}</td>
         </tr>'''
     response += '</table>'
     return response
