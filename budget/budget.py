@@ -1,255 +1,144 @@
-#!/bin/env python
-"""Main module for budget"""
-
-from pathlib import Path
-import pyodbc
-from pyyamlconfig import (
-    load_config,
-    PyYAMLConfigError,
+from datetime import (
+    date,
+    datetime,
 )
-from pprint import pprint
+from money import Money
+from typing import (
+    List,
+    Optional,
+)
+import pickle
 
 
-class Budget:
-    """Main class for budget"""
-    def __init__(self, config=None):
-        if config is None:
-            config = f'{Path.home()}/.config/budget.yaml'
-        default_config = {
-                'connectionstring': 'DRIVER={SQLite3};DATABASE=:memory:;',
-            }
-        try:
-            self.config = load_config(config)
-        except PyYAMLConfigError:
-            self.config = {}
-        self.config = {**default_config, **self.config}
-        self.database = pyodbc.connect(
-            self.config.get('connectionstring'),
-            autocommit=True,
-        )
-        self.setup_database()
+class InvalidMoney(Exception):
+    """The money entered is invalid"""
+    pass
 
-    def setup_database(self):
-        cursor = self.database.cursor()
-        cursor.execute(
-            '''
-            CREATE TABLE
-                category (
-                    id integer primary key autoincrement,
-                    name text NOT NULL
-                )
-            '''
-        )
-        cursor.execute(
-            '''
-            CREATE TABLE
-                title (
-                    id integer primary key autoincrement,
-                    name text NOT NULL
-                )
-            '''
-        )
-        cursor.execute(
-            '''
-            CREATE TABLE
-                category_map (
-                    id integer primary key autoincrement,
-                    title_id integer,
-                    category_id integer,
-                    FOREIGN KEY(title_id) REFERENCES title(id),
-                    FOREIGN KEY(category_id) REFERENCES category(id)
-                )
-            '''
-        )
-        cursor.execute(
-            '''
-            CREATE TABLE
-                event (
-                    id integer primary key autoincrement,
-                    title_id integer NOT NULL,
-                    date date NOT NULL,
-                    amount integer NOT NULL,
-                    balance integer NOT NULL,
-                    FOREIGN KEY(title_id) REFERENCES title(id)
-                )
-            '''
-        )
 
-    def get_categories(self):
-        cursor = self.database.cursor()
-        cursor.execute('SELECT * FROM category')
-        return cursor.fetchall()
+class InvalidDate(Exception):
+    """The date entered is invalid"""
+    pass
 
-    def get_titles(self):
-        cursor = self.database.cursor()
-        cursor.execute('SELECT * FROM title')
-        return cursor.fetchall()
 
-    def get_events(self, year, month):
-        """Example function for printing a set of events"""
-        cursor = self.database.cursor()
-        cursor.execute(
-            f'''
-            SELECT
-                title.name as title,
-                date,
-                amount,
-                balance,
-                category.name as category
-            FROM
-                event
-            JOIN
-                title
-            ON
-                title.id = event.title_id
-            JOIN
-                category_map
-            ON
-                title.id = category_map.title_id
-            JOIN
-                category
-            ON
-                category_map.category_id = category.id
-            WHERE
-                date BETWEEN '{year}-{month:02}-01' AND '{year}-{month:02}-31'
-            ORDER BY
-                category.name,
-                event.id DESC
-            '''
-        )
-        return cursor.fetchall()
+class SEK(Money):
+    def __init__(self, *, amount='0'):
+        super().__init__(amount=amount, currency='SEK')
 
-    def create_category(self, category):
-        cursor = self.database.cursor()
-        cursor.execute(
-            f'''
-            SELECT
-                id
-            FROM
-                category
-            WHERE
-                name = "{category}"
-            '''
-        )
-        category_id = cursor.fetchone()
-        if category_id is None:
-            cursor.execute(
-                f'''
-                INSERT INTO
-                    category (
-                        name
-                    )
-                VALUES (
-                    "{category}"
-                )
-                '''
-            )
-            cursor.execute(
-                f'''
-                SELECT
-                    id
-                FROM
-                    category
-                WHERE
-                    name = "{category}"
-                '''
-            )
-            category_id = cursor.fetchone()
-        return category_id
 
-    def set_category(self, title_id, category_id):
-        cursor = self.database.cursor()
-        cursor.execute(
-            f'''
-            INSERT INTO
-                category_map (
-                    title_id,
-                    category_id
-                )
-            VALUES (
-                {title_id},
-                {category_id}
-            )
-            '''
-        )
+class History:
+    def __init__(self) -> None:
+        self.history: List['Event'] = []
+        self.titles: List['Title'] = []
+        self.categories: List['Category'] = []
 
-    def insert_events(self, eventfile='events.txt'):
-        """Insert all the transactions found in the file provided"""
-        cursor = self.database.cursor()
-        with open(eventfile) as file:
-            lines = file.readlines()
-            while lines:
-                title = lines.pop(0).strip()
-                date = lines.pop(0).strip()
-                amount = lines.pop(0).strip()
-                amount = int(amount.replace(',', '').replace(' ', ''))
-                balance = lines.pop(0).strip()
-                balance = int(balance.replace(',', '').replace(' ', ''))
-                cursor.execute(
-                    f'''
-                    SELECT
-                        id
-                    FROM
-                        title
-                    WHERE
-                        name = "{title}"
-                    '''
-                )
-                try:
-                    (title_id,) = cursor.fetchone()
-                except TypeError:
-                    title_id = None
-                if title_id is None:
-                    cursor.execute(
-                        f'''
-                        INSERT INTO
-                            title (
-                                name
-                            )
-                        VALUES (
-                            "{title}"
-                        );
-                        '''
-                    )
-                    cursor.execute(
-                        f'''
-                        SELECT
-                            id
-                        FROM
-                            title
-                        WHERE
-                            name = "{title}"
-                        '''
-                    )
-                    (title_id,) = cursor.fetchone()
+    def add_event(self, *, event: 'Event') -> None:
+            self.history.append(event)
 
-                cursor.execute(
-                    f'''
-                    INSERT INTO
-                        event (
-                            title_id,
-                            date,
-                            amount,
-                            balance
-                        )
-                    VALUES (
-                        {title_id},
-                        "{date}",
-                        {amount},
-                        {balance}
-                    )
-                    '''
-                )
+    def events_between(self, *, date_from: date, date_to: date) -> List['Event']:
+        return [x for x in self.history if date_from <= x.transaction_date <= date_to]
+
+    def create_title(self, *, new_title: str, category: Optional['Category'] = None) -> 'Title':
+        if new_title in [x.name for x in self.titles]:
+            for title in self.titles:
+                if title.name == new_title:
+                    return title
+        added_title = Title(name=new_title, default_category=category)
+        self.titles.append(added_title)
+        return added_title
+
+    def save(self, *, filename: str) -> None:
+        with open(filename, 'wb') as file:
+            pickle.dump(self, file, pickle.HIGHEST_PROTOCOL)
+
+    def load(self, *, filename: str) -> None:
+        with open(filename, 'rb') as file:
+            loaded = pickle.load(file)
+            self.history = loaded.history
+            self.titles = loaded.titles
+            self.categories = loaded.categories
+
+
+class Title:
+    def __init__(self, *, name: str, default_category: Optional['Category']) -> None:
+        self.name: str = name
+        self.default_category: Category = default_category
+
+    @property
+    def category(self) -> 'Category':
+        return self.default_category
+
+    @category.setter
+    def category(self, category: 'Category') -> None:
+        self.default_category = category
+
+
+class Category:
+    def __init__(self, *, name: str) -> None:
+        self.name: str = name
+
+    @property
+    def dict(self):
+        return {
+            'name': self.name,
+        }
+
+
+class Event:
+    def __init__(self, *, title: Title, transaction_date: str, posting_date: str,
+                 amount: str, balance: str, category: Optional['Category'] = None) -> None:
+        self.title = title
+        self.transaction_date = self.clean_date(date_string=transaction_date)
+        self.posting_date = self.clean_date(date_string=posting_date)
+        self.amount = self.launder_money(money_string=amount)
+        self.balance = self.launder_money(money_string=balance)
+        self.overridden_category = category
+
+    @property
+    def dict(self) -> dict:
+        return {
+            'title': self.title.name,
+            'transaction_date': self.transaction_date,
+            'posting_date': self.posting_date,
+            'amount': self.amount,
+            'balance': self.balance,
+            'default_category': self.title.category.name if self.title.category is not None else None,
+            'overridden_category': self.overridden_category.name if self.overridden_category is not None else None,
+        }
+
+    @staticmethod
+    def launder_money(*, money_string: str) -> SEK:
+        money_string = money_string.replace(' ', '')
+        money_string = money_string.replace(',', '.')
+        if money_string == '':
+            raise InvalidMoney
+        return SEK(amount=money_string)
+
+    @staticmethod
+    def clean_date(*, date_string: str) -> date:
+        if date_string == '':
+            raise InvalidDate
+        return datetime.strptime(date_string, "%Y-%m-%d").date()
 
 
 if __name__ == '__main__':
-    budget = Budget()
-    budget.insert_events()
-    budget.create_category('Groceries')
-    budget.create_category('Electronics')
-    budget.create_category('Games')
-    budget.set_category(1, 1)
-    budget.set_category(3, 2)
-    budget.set_category(19, 3)
-    pprint(budget.get_events(2018, 1))
-    #pprint(budget.get_titles())
+    history = History()
+    # electronics = Category(name='Electronics')
+    # eating_out = Category(name='Eating out')
+    # history.create_title(new_title='WEBHALLEN', category=electronics)
+    # history.create_title(new_title='PINOCCHIO', category=eating_out)
+    # with open('events.txt') as file:
+    #     lines = file.readlines()
+    #     while lines:
+    #         title = history.create_title(new_title=lines.pop(0).strip())
+    #         history.add_event(
+    #             event=Event(
+    #                 title=title,
+    #                 transaction_date=lines.pop(0).strip(),
+    #                 posting_date=lines.pop(0).strip(),
+    #                 amount=lines.pop(0).strip(),
+    #                 balance=lines.pop(0).strip(),
+    #             )
+    #         )
+    history.load(filename='data.sav')
+    for event in history.events_between(date_from=date(2017, 1, 1), date_to=date(2017, 1, 31)):
+        print(event.dict)

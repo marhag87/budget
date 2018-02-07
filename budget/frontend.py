@@ -1,27 +1,28 @@
+from datetime import date
 from flask import Flask
-from budget import Budget
+from budget import (
+    History,
+    Event,
+    Category,
+    Title,
+    SEK,
+)
 
 APP = Flask(__name__)
 
 
 @APP.route('/')
 def index():
-    budget = Budget()
-    budget.insert_events()
-    budget.create_category('Groceries')
-    budget.create_category('Electronics')
-    budget.create_category('Games')
-    budget.set_category(1, 1)
-    budget.set_category(3, 2)
-    budget.set_category(19, 3)
+    history = History()
+    history.load(filename='data.sav')
     response = '<table>'
-    previous_category = ''
-    for title, date, amount, balance, category in budget.get_events(2018, 1):
-        if previous_category != category:
-            previous_category = category
-            response += f'<tr><td style="font-weight: bold">{category}</td><td></td></tr>'
-        amount = amount/100.0
-        response += f'<tr><td>{title}</td><td style="text-align: right">{amount:.2f}</td></tr>'
+    for event in history.events_between(date_from=date(2018, 1, 1), date_to=date(2018, 1, 31)):
+        response += f'''
+        <tr>
+            <td>{event.title.name}</td>
+            <td style="text-align: right">{event.amount.amount}</td>
+            <td>{event.dict.get("default_category")}</td>
+        </tr>'''
     response += '</table>'
     return response
 

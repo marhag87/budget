@@ -21,6 +21,7 @@ setup(
         'pyyamlconfig',
         'pyodbc',
         'flask',
+        'money',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',
