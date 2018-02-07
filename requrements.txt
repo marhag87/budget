@@ -1,8 +1,5 @@
-pyyamlconfig
 pylint
 coverage
 tox
-pyodbc
-flask
 money
-pyramid
+flask

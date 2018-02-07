@@ -1,7 +1,8 @@
 from datetime import date
-from pyramid.response import Response
-from pyramid.config import Configurator
-from wsgiref.simple_server import make_server
+from flask import (
+    Flask,
+    request,
+)
 from budget import (
     History,
     Event,
@@ -10,39 +11,44 @@ from budget import (
     SEK,
 )
 
-
-class Budget:
-    def __init__(self, request):
-        self.request = request
-        self.history = History()
-        self.history.load(filename='data.sav')
+HISTORY = History()
+HISTORY.load(filename='data.sav')
+APP = Flask(__name__)
 
 
-class Events(Budget):
-    def __call__(self):
-        response = '<table>'
-        for event in self.history.events_between(date_from=date(2018, 1, 1), date_to=date(2018, 1, 31)):
-            response += f'''
-            <tr>
-                <td>{event.title.name}</td>
-                <td style="text-align: right">{event.amount.amount}</td>
-                <td>{event.category}</td>
-            </tr>'''
-        response += '</table>'
-        return Response(response)
+@APP.route('/')
+def events():
+    response = '<a href="/categories">Categories</a><br/><br/>'
+    response += '<table>'
+    for event in HISTORY.events_between(date_from=date(2018, 1, 1), date_to=date(2018, 1, 31)):
+        response += f'''
+        <tr>
+            <td>{event.title.name}</td>
+            <td style="text-align: right">{event.amount.amount}</td>
+            <td>{event.category}</td>
+        </tr>'''
+    response += '</table>'
+    return response
 
 
-class Categories(Budget):
-    def __call__(self):
-        return Response(str([x.name for x in self.history.categories]))
+@APP.route('/categories', methods=['GET', 'POST'])
+def categories():
+    if request.method == 'POST':
+        category = request.form.get('category')
+        if category is not None:
+            HISTORY.create_category(name=category)
+            HISTORY.save(filename='data.sav')
+
+    response = '<a href="/">Events</a><br/><br/>'
+    response += str([x.name for x in HISTORY.categories])
+    response += '''
+    <form action="/categories" method="post">
+        Add category: <input type="text" name="category">
+        <input type="submit">
+    </form>
+    '''
+    return response
 
 
 if __name__ == '__main__':
-    with Configurator() as config:
-        config.add_route('index', '/')
-        config.add_view(Events, route_name='index')
-        config.add_route('categories', '/categories')
-        config.add_view(Categories, route_name='categories')
-        app = config.make_wsgi_app()
-    server = make_server('0.0.0.0', 8081, app)
-    server.serve_forever()
+    APP.run('0.0.0.0', 8081)

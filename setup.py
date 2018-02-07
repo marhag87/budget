@@ -18,11 +18,8 @@ setup(
     description='Keep track of your budget',
     long_description='A tool for keeping track of your budget',
     install_requires=[
-        'pyyamlconfig',
-        'pyodbc',
-        'flask',
         'money',
-        'pyramid',
+        'flask',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',

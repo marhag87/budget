@@ -153,10 +153,12 @@ class Event:
 
 if __name__ == '__main__':
     history = History()
-    # history.create_category(name='Electronics')
-    # history.load_events(filename='events.txt')
-    # history.save(filename='data.sav')
-    history.load(filename='data.sav')
-    print([x.name for x in history.categories])
+    electronics = history.create_category(name='Electronics')
+    history.create_title(new_title='WEBHALLEN', category=electronics)
+    history.create_title(new_title='NINTENDO OF EURO', category=electronics)
+    history.load_events(filename='events.txt')
+    history.save(filename='data.sav')
+    # history.load(filename='data.sav')
+    # print([x.name for x in history.categories])
     # for event in history.events_between(date_from=date(2018, 1, 1), date_to=date(2018, 1, 31)):
     #     print(event.dict)
