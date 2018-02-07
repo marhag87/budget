@@ -20,6 +20,7 @@ setup(
     install_requires=[
         'pyyamlconfig',
         'pyodbc',
+        'flask',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',

@@ -95,7 +95,7 @@ class Budget:
                 date,
                 amount,
                 balance,
-                category.name
+                category.name as category
             FROM
                 event
             JOIN
@@ -112,6 +112,9 @@ class Budget:
                 category_map.category_id = category.id
             WHERE
                 date BETWEEN '{year}-{month:02}-01' AND '{year}-{month:02}-31'
+            ORDER BY
+                category.name,
+                event.id DESC
             '''
         )
         return cursor.fetchall()
@@ -244,6 +247,9 @@ if __name__ == '__main__':
     budget.insert_events()
     budget.create_category('Groceries')
     budget.create_category('Electronics')
+    budget.create_category('Games')
     budget.set_category(1, 1)
+    budget.set_category(3, 2)
+    budget.set_category(19, 3)
     pprint(budget.get_events(2018, 1))
     #pprint(budget.get_titles())
