@@ -57,6 +57,21 @@ class History:
             self.titles = loaded.titles
             self.categories = loaded.categories
 
+    def load_events(self, *, filename: str) -> None:
+        with open(filename) as file:
+            lines = file.readlines()
+            while lines:
+                title = self.create_title(new_title=lines.pop(0).strip())
+                self.add_event(
+                    event=Event(
+                        title=title,
+                        transaction_date=lines.pop(0).strip(),
+                        posting_date=lines.pop(0).strip(),
+                        amount=lines.pop(0).strip(),
+                        balance=lines.pop(0).strip(),
+                    )
+                )
+
 
 class Title:
     def __init__(self, *, name: str, default_category: Optional['Category']) -> None:
@@ -122,23 +137,8 @@ class Event:
 
 if __name__ == '__main__':
     history = History()
-    # electronics = Category(name='Electronics')
-    # eating_out = Category(name='Eating out')
-    # history.create_title(new_title='WEBHALLEN', category=electronics)
-    # history.create_title(new_title='PINOCCHIO', category=eating_out)
-    # with open('events.txt') as file:
-    #     lines = file.readlines()
-    #     while lines:
-    #         title = history.create_title(new_title=lines.pop(0).strip())
-    #         history.add_event(
-    #             event=Event(
-    #                 title=title,
-    #                 transaction_date=lines.pop(0).strip(),
-    #                 posting_date=lines.pop(0).strip(),
-    #                 amount=lines.pop(0).strip(),
-    #                 balance=lines.pop(0).strip(),
-    #             )
-    #         )
-    history.load(filename='data.sav')
-    for event in history.events_between(date_from=date(2017, 1, 1), date_to=date(2017, 1, 31)):
+    history.load_events(filename='events.txt')
+    # history.save(filename='data.sav')
+    # history.load(filename='data.sav')
+    for event in history.events_between(date_from=date(2018, 1, 1), date_to=date(2018, 1, 31)):
         print(event.dict)

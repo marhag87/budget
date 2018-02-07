@@ -6,3 +6,4 @@ htmlcov
 .coverage
 .tox
 events.txt
+data.sav
