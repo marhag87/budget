@@ -1,0 +1,27 @@
+{% include 'skeleton-pre.html' %}
+<div class="starter-template">
+    <form>
+        <div class="form-group">
+            <label for="categoryInput">New category</label>
+            <input type="text" class="form-control" id="categoryInput" placeholder="Enter new category name" name="category">
+        </div>
+        <button type="submit" class="btn btn-primary" formmethod="post">Submit</button>
+    </form>
+    <div class="table-responsive">
+        <table class="table table-striped table-sm">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in categories %}
+                <tr>
+                    <td>{{ category.name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% include 'skeleton-post.html' %}

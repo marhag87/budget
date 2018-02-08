@@ -2,6 +2,7 @@ from datetime import date
 from flask import (
     Flask,
     request,
+    render_template,
 )
 from budget import (
     History,
@@ -13,22 +14,20 @@ from budget import (
 
 HISTORY = History()
 HISTORY.load(filename='data.sav')
-APP = Flask(__name__)
+APP = Flask(__name__, static_url_path='/static')
 
 
 @APP.route('/')
+def index():
+    return render_template('index.html')
+
+
+@APP.route('/events')
 def events():
-    response = '<a href="/categories">Categories</a><br/><br/>'
-    response += '<table>'
-    for event in HISTORY.events_between(date_from=date(2018, 1, 1), date_to=date(2018, 1, 31)):
-        response += f'''
-        <tr>
-            <td>{event.title.name}</td>
-            <td style="text-align: right">{event.amount.amount}</td>
-            <td>{event.category}</td>
-        </tr>'''
-    response += '</table>'
-    return response
+    return render_template(
+        'events.html',
+        events=HISTORY.events_between(date_from=date(2018, 1, 1), date_to=date(2018, 1, 31)),
+    )
 
 
 @APP.route('/categories', methods=['GET', 'POST'])
@@ -39,15 +38,10 @@ def categories():
             HISTORY.create_category(name=category)
             HISTORY.save(filename='data.sav')
 
-    response = '<a href="/">Events</a><br/><br/>'
-    response += str([x.name for x in HISTORY.categories])
-    response += '''
-    <form action="/categories" method="post">
-        Add category: <input type="text" name="category">
-        <input type="submit">
-    </form>
-    '''
-    return response
+    return render_template(
+        'categories.html',
+        categories=HISTORY.categories,
+    )
 
 
 if __name__ == '__main__':
