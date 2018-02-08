@@ -6,7 +6,9 @@
                 <tr>
                     <th>Name</th>
                     <th>Amount</th>
-                    <th>Category</th>
+                    <th>Default category</th>
+                    <th>Overridden category</th>
+                    <th>Actual category</th>
                 </tr>
             </thead>
             <tbody>
@@ -14,6 +16,15 @@
                 <tr>
                     <td>{{ event.title.name }}</td>
                     <td>{{ event.amount.amount }}</td>
+                    <td>{{ event.title.category.name }}</td>
+                    <td>
+                        <select class="selectpicker">
+                            <option label=" "></option>
+                            {% for category in categories %}
+                                <option{% if event.overridden_category.name==category.name %} selected="selected"{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
                     <td>{{ event.category }}</td>
                 </tr>
                 {% endfor %}

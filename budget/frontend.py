@@ -27,6 +27,7 @@ def events():
     return render_template(
         'events.html',
         events=HISTORY.events_between(date_from=date(2018, 1, 1), date_to=date(2018, 1, 31)),
+        categories=HISTORY.categories,
     )
 
 
