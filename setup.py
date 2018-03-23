@@ -20,6 +20,7 @@ setup(
     install_requires=[
         'money',
         'flask',
+        'sqlalchemy',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',

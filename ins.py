@@ -32,7 +32,6 @@ except IntegrityError:
     session.rollback()
     stangastaden = session.query(Title).filter(Title.name == 'Stångåstaden').one()
 
-
 try:
     rent_february = Transaction(
         amount=-6576,
@@ -45,7 +44,6 @@ try:
 except IntegrityError:
     session.rollback()
     rent_february = session.query(Transaction).filter(Transaction.title == stangastaden).one()
-
 
 print(rent_february.amount)
 print(rent_february.date)
